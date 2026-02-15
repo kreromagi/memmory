@@ -1,12 +1,185 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Figma Design System Extractor</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Figma DS Extractor</title>
+    <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-  <div id="root"></div>
-  <script type="module" src="./src/main.jsx"></script>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header__logo">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <rect width="32" height="32" rx="8" fill="#7C3AED"/>
+                    <path d="M10 8h12v4H10zM10 14h8v4h-8zM10 20h12v4H10z" fill="white" opacity="0.9"/>
+                </svg>
+                <h1>Figma DS Extractor</h1>
+            </div>
+            <div class="header__status" id="connectionStatus">
+                <span class="status-dot status-dot--disconnected"></span>
+                <span>Не подключено</span>
+            </div>
+        </header>
+
+        <!-- Settings Panel -->
+        <section class="panel panel--settings">
+            <h2 class="panel__title">⚙️ Настройки подключения</h2>
+            <div class="settings-grid">
+                <div class="field">
+                    <label for="figmaToken">Figma API Token</label>
+                    <input type="password" id="figmaToken" placeholder="figd_xxxxxxxxxxxxx" />
+                    <small>Settings → Account → Personal Access Tokens</small>
+                </div>
+                <div class="field">
+                    <label for="figmaFileKey">Figma File Key</label>
+                    <input type="text" id="figmaFileKey" placeholder="abc123XYZ..." />
+                    <small>Из URL файла: figma.com/file/<strong>FILE_KEY</strong>/...</small>
+                </div>
+                <div class="field">
+                    <label for="supabaseUrl">Supabase URL</label>
+                    <input type="text" id="supabaseUrl" placeholder="https://xxxxx.supabase.co" />
+                </div>
+                <div class="field">
+                    <label for="supabaseKey">Supabase Anon Key</label>
+                    <input type="password" id="supabaseKey" placeholder="eyJhbGci..." />
+                </div>
+            </div>
+            <div class="settings-actions">
+                <button class="btn btn--secondary" id="btnTestConnection">Проверить подключение</button>
+                <button class="btn btn--secondary" id="btnSaveSettings">Сохранить настройки</button>
+            </div>
+        </section>
+
+        <!-- Main Actions -->
+        <section class="panel panel--actions">
+            <div class="actions-row">
+                <button class="btn btn--primary btn--large" id="btnSync">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M14.66 8.347l-2.83-2.83a1 1 0 00-1.41 0l-2.83 2.83a1 1 0 101.41 1.41L10.59 8.17V14a1 1 0 002 0V8.17l1.59 1.59a1 1 0 001.41-1.41z" fill="currentColor"/>
+                        <path d="M17 2H3a1 1 0 000 2h14a1 1 0 000-2zM17 16H3a1 1 0 000 2h14a1 1 0 000-2z" fill="currentColor"/>
+                    </svg>
+                    Синхронизировать с Figma
+                </button>
+                <button class="btn btn--outline" id="btnExportJson">📥 Экспорт JSON</button>
+                <button class="btn btn--outline" id="btnClearMemory">🗑️ Очистить память</button>
+            </div>
+
+            <!-- Progress -->
+            <div class="progress-container" id="progressContainer" style="display:none;">
+                <div class="progress-header">
+                    <span id="progressLabel">Подготовка...</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-bar__fill" id="progressFill" style="width:0%"></div>
+                </div>
+                <div class="progress-details" id="progressDetails"></div>
+            </div>
+        </section>
+
+        <!-- Two-column layout: Log + Preview -->
+        <div class="main-content">
+            <!-- Log Panel -->
+            <section class="panel panel--log">
+                <div class="panel__header">
+                    <h2 class="panel__title">📋 Лог синхронизации</h2>
+                    <button class="btn btn--ghost btn--small" id="btnClearLog">Очистить</button>
+                </div>
+                <div class="log-container" id="logContainer">
+                    <div class="log-entry log-entry--info">
+                        <span class="log-time">--:--:--</span>
+                        <span class="log-msg">Ожидание запуска синхронизации...</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Data Preview -->
+            <section class="panel panel--preview">
+                <h2 class="panel__title">📊 Извлечённые данные</h2>
+                <div class="tabs" id="previewTabs">
+                    <button class="tab tab--active" data-tab="overview">Обзор</button>
+                    <button class="tab" data-tab="colors">Цвета</button>
+                    <button class="tab" data-tab="typography">Типографика</button>
+                    <button class="tab" data-tab="components">Компоненты</button>
+                    <button class="tab" data-tab="spacing">Отступы</button>
+                    <button class="tab" data-tab="shadows">Тени</button>
+                    <button class="tab" data-tab="guidelines">Руководства</button>
+                    <button class="tab" data-tab="memory">Память</button>
+                </div>
+                <div class="tab-content" id="tabContent">
+                    <div class="tab-pane tab-pane--active" data-pane="overview">
+                        <div class="overview-stats" id="overviewStats">
+                            <div class="stat-card">
+                                <div class="stat-card__value" id="statPages">—</div>
+                                <div class="stat-card__label">Страниц</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card__value" id="statColors">—</div>
+                                <div class="stat-card__label">Цветов</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card__value" id="statTypo">—</div>
+                                <div class="stat-card__label">Стилей текста</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card__value" id="statComponents">—</div>
+                                <div class="stat-card__label">Компонентов</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card__value" id="statShadows">—</div>
+                                <div class="stat-card__label">Теней</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card__value" id="statGuidelines">—</div>
+                                <div class="stat-card__label">Руководств</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card__value" id="statMemory">—</div>
+                                <div class="stat-card__label">Записей памяти</div>
+                            </div>
+                        </div>
+                        <div id="pagesOverview" class="pages-list"></div>
+                    </div>
+                    <div class="tab-pane" data-pane="colors">
+                        <div id="colorsContent" class="data-content">Нет данных</div>
+                    </div>
+                    <div class="tab-pane" data-pane="typography">
+                        <div id="typographyContent" class="data-content">Нет данных</div>
+                    </div>
+                    <div class="tab-pane" data-pane="components">
+                        <div id="componentsContent" class="data-content">Нет данных</div>
+                    </div>
+                    <div class="tab-pane" data-pane="spacing">
+                        <div id="spacingContent" class="data-content">Нет данных</div>
+                    </div>
+                    <div class="tab-pane" data-pane="shadows">
+                        <div id="shadowsContent" class="data-content">Нет данных</div>
+                    </div>
+                    <div class="tab-pane" data-pane="guidelines">
+                        <div id="guidelinesContent" class="data-content">Нет данных</div>
+                    </div>
+                    <div class="tab-pane" data-pane="memory">
+                        <div id="memoryContent" class="data-content">Нет данных</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="src/utils.js"></script>
+    <script src="src/Logger.js"></script>
+    <script src="src/SupabaseClient.js"></script>
+    <script src="src/ColorExtractor.js"></script>
+    <script src="src/TypographyExtractor.js"></script>
+    <script src="src/ComponentExtractor.js"></script>
+    <script src="src/LayoutExtractor.js"></script>
+    <script src="src/GuidelineDetector.js"></script>
+    <script src="src/PageAnalyzer.js"></script>
+    <script src="src/FigmaExtractor.js"></script>
+    <script src="src/app.js"></script>
 </body>
 </html>

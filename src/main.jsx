@@ -7,23 +7,3 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>,
 )
-```
-
----
-
-## 🔍 Проверьте структуру папок
-
-Убедитесь, что у вас есть:
-```
-figma-design-system-extractor/
-├── src/
-│   ├── main.jsx          ← СОЗДАЙТЕ ЭТОТ ФАЙЛ
-│   ├── App.jsx           ← Должен быть
-│   ├── App.css           ← Должен быть
-│   └── services/
-│       ├── figmaService.js      ← Должен быть
-│       └── supabaseService.js   ← Должен быть
-├── index.html
-├── package.json
-├── vite.config.js
-└── netlify.toml

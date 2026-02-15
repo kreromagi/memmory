@@ -1,22 +1,16 @@
 {
-  "name": "figma-design-system-extractor",
+  "name": "figma-ds-extractor",
   "version": "1.0.0",
-  "description": "Extract design system data from Figma",
-  "type": "module",
+  "description": "Figma Design System Extractor — extracts design tokens, components, and guidelines into Supabase memory",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "netlify dev",
+    "build": "echo 'Static site, no build needed'"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@supabase/supabase-js": "^2.39.0",
+    "node-fetch": "^2.7.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.47",
-    "@types/react-dom": "^18.2.18",
-    "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.0.11"
+    "netlify-cli": "^17.0.0"
   }
 }
